@@ -9,8 +9,11 @@ export function getConsumer() {
   return params.get('consumer') || 'web user';
 }
 
-export async function fetchAndRenderMessages(room) {
-  const response = await fetch(`/api/rooms/${room}/messages`);
+export async function fetchAndRenderMessages(room, consumer) {
+  const url = consumer
+    ? `/api/rooms/${room}/messages?consumer=${encodeURIComponent(consumer)}`
+    : `/api/rooms/${room}/messages`;
+  const response = await fetch(url);
   const messages = await response.json();
 
   currentFeed = new MessageFeed();

@@ -93,6 +93,23 @@ module TestDoubles
     end
   end
 
+  class RecordingReadPositionDatabase
+    attr_reader :last_consumer_name, :last_updated_message_id
+
+    def initialize(room_id:, messages:)
+      @room_id = room_id
+      @messages = messages
+    end
+
+    def find_or_create_room(_name) = @room_id
+    def messages_since(room_id:, since_id:) = @messages
+    def find_or_create_consumer(name) = (@last_consumer_name = name; 2)
+
+    def update_last_read_message_id(consumer_id:, room_id:, message_id:)
+      @last_updated_message_id = message_id
+    end
+  end
+
   def stub_database(room_id: nil, messages: [])
     Object.new.tap do |stub|
       stub.define_singleton_method(:find_or_create_room) { |_| room_id }

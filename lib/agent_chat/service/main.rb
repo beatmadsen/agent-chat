@@ -30,9 +30,10 @@ module AgentChat
         @database.all_rooms
       end
 
-      def get_messages(room:)
+      def get_messages(room:, consumer: nil)
         room_id = @database.find_or_create_room(room)
         rows = @database.messages_since(room_id: room_id, since_id: 0)
+        register_read_position(room_id:, consumer:, rows:) if consumer
         AgentChat::Persistence.rows_to_messages(rows)
       end
 
@@ -42,16 +43,27 @@ module AgentChat
         last_read_id = @database.get_last_read_message_id(consumer_id: consumer_id, room_id: room_id)
 
         rows = @database.messages_since(room_id: room_id, since_id: last_read_id)
-
-        if rows.any?
-          @database.update_last_read_message_id(
-            consumer_id: consumer_id,
-            room_id: room_id,
-            message_id: rows.last[0]
-          )
-        end
-
+        update_read_position(consumer_id:, room_id:, rows:)
         AgentChat::Persistence.rows_to_messages(rows)
+      end
+
+      private
+
+      def register_read_position(room_id:, consumer:, rows:)
+        return unless rows.any?
+
+        consumer_id = @database.find_or_create_consumer(consumer)
+        update_read_position(consumer_id:, room_id:, rows:)
+      end
+
+      def update_read_position(consumer_id:, room_id:, rows:)
+        return unless rows.any?
+
+        @database.update_last_read_message_id(
+          consumer_id: consumer_id,
+          room_id: room_id,
+          message_id: rows.last[0]
+        )
       end
     end
   end

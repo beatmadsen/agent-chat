@@ -55,14 +55,14 @@
       document.querySelectorAll('#rooms-list li').forEach(li => {
         li.classList.toggle('active', li.textContent === room);
       });
-      const count = await fetchAndRenderMessages(room);
+      const consumer = getConsumer();
+      const count = await fetchAndRenderMessages(room, consumer);
       document.getElementById('room-title').textContent = `${room} (${count})`;
 
       // Pre-populate author from consumer
-      document.getElementById('message-author').value = getConsumer();
+      document.getElementById('message-author').value = consumer;
 
       // Start polling for new messages
-      const consumer = getConsumer();
       pollingInterval = setInterval(async () => {
         const count = await fetchAndAppendNewMessages(room, consumer);
         document.getElementById('room-title').textContent = `${room} (${count})`;

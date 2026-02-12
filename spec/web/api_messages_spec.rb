@@ -47,6 +47,19 @@ class ApiMessagesSpec < Minitest::Test
     assert_equal 'Alice', result[0]['author']
   end
 
+  def test_should_pass_consumer_to_service_when_provided
+    # Given: a recording service
+    service = RecordingGetMessagesService.new
+    AgentChat::Web::App.set :service_factory, StubServiceFactory.new(service)
+
+    # When
+    get '/api/rooms/general/messages?consumer=web+user', {}, { 'HTTP_HOST' => 'localhost' }
+
+    # Then
+    assert last_response.ok?
+    assert_equal 'web user', service.last_consumer
+  end
+
   def test_should_post_message_to_service
     # Given: a service factory that returns a recording service
     service = RecordingService.new
@@ -76,6 +89,15 @@ class ApiMessagesSpec < Minitest::Test
     end
   end
 
+  class RecordingGetMessagesService
+    attr_reader :last_consumer
+
+    def get_messages(room:, consumer: nil)
+      @last_consumer = consumer
+      []
+    end
+  end
+
   class StubServiceFactory
     def initialize(service)
       @service = service
@@ -88,7 +110,7 @@ class ApiMessagesSpec < Minitest::Test
 
   def stub_service_factory(messages: [], new_messages: [])
     service = Object.new.tap do |stub|
-      stub.define_singleton_method(:get_messages) { |room:| messages }
+      stub.define_singleton_method(:get_messages) { |room:, consumer: nil| messages }
       stub.define_singleton_method(:get_new_messages) { |room:, consumer:| new_messages }
     end
     StubServiceFactory.new(service)

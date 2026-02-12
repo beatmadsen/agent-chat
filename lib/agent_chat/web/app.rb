@@ -14,7 +14,7 @@ module AgentChat
 
       get '/api/rooms/:room/messages' do
         service = settings.service_factory.for_room(params[:room])
-        messages = service.get_messages(room: params[:room])
+        messages = service.get_messages(room: params[:room], consumer: params[:consumer])
         json messages.map { |m| { author: m.author, content: m.content, timestamp: m.timestamp } }
       end
 

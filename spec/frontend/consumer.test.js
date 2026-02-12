@@ -10,6 +10,21 @@ describe('consumer', () => {
     document.body.innerHTML = '<div id="messages"></div>';
   });
 
+  test('should pass consumer to initial messages fetch', async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([])
+      })
+    );
+
+    await fetchAndRenderMessages('general', 'Alice');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/rooms/general/messages?consumer=Alice'
+    );
+  });
+
   test('should use consumer from URL parameter', async () => {
     delete window.location;
     window.location = { search: '?consumer=Alice' };
