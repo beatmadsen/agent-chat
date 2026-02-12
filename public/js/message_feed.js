@@ -11,7 +11,9 @@ export class MessageFeed {
 
   appendMessages(messages) {
     this.messages = this.messages.filter(m => !m.optimistic);
-    this.messages = [...this.messages, ...messages];
+    const existing = new Set(this.messages.map(m => m.timestamp));
+    const novel = messages.filter(m => !m.timestamp || !existing.has(m.timestamp));
+    this.messages = [...this.messages, ...novel];
   }
 
   get count() {
