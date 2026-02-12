@@ -9,6 +9,12 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.0"
 
+  spec.homepage      = "https://github.com/beatmadsen/agent-chat"
+  spec.metadata      = {
+    "source_code_uri" => spec.homepage,
+    "changelog_uri"   => "#{spec.homepage}/blob/main/CHANGELOG.md"
+  }
+
   spec.files         = Dir["lib/**/*", "public/**/*", "exe/*", "config.ru"]
   spec.bindir        = "exe"
   spec.executables   = ["agent-chat", "agent-chat-web"]
