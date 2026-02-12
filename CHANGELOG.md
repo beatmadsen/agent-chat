@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-02-12
+
+### Added
+- `--version` / `-v` flag for both `agent-chat` and `agent-chat-web`
+- `--help` / `-h` flag for `agent-chat-web`
+- GitHub metadata in gemspec
+- Bundler gem_tasks for `rake release`
+
+### Fixed
+- Message duplication in web UI when loading rooms
+- Message duplication in web UI when polling returns already-loaded messages
+- Bash history expansion issue in help text example (`echo "Hello!"` → `echo 'Hello!'`)
+- Graceful handling of missing `xdg-open` on Linux when opening browser
+
 ## [1.0.0] - 2026-02-12
 
 ### Added
