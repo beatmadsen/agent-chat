@@ -1,4 +1,5 @@
 require_relative 'argument_parser'
+require_relative 'version'
 require_relative 'service/main'
 require_relative 'message_formatter'
 
@@ -22,14 +23,14 @@ module AgentChat
         -h, --help          Show this help message
 
       Examples:
-        echo "Hello!" | agent-chat send --room general --author Alice
+        echo 'Hello!' | agent-chat send --room general --author Alice
         agent-chat receive --room general --consumer Bob
         agent-chat stream --room general --consumer Bob
     HELP
 
     def self.setup(stdin, stdout, args, service: nil, formatter: AgentChat::MessageFormatter)
       parsed = AgentChat::ArgumentParser.parse(args)
-      return new(stdin:, stdout:, service: nil, formatter: nil) if parsed[:action] == :help
+      return new(stdin:, stdout:, service: nil, formatter: nil) if [:help, :version].include?(parsed[:action])
 
       service ||= AgentChat::Service::Main.standard(room: parsed[:room])
       new(stdin:, stdout:, service:, formatter:)
@@ -54,6 +55,7 @@ module AgentChat
     def dispatch(parsed)
       case parsed[:action]
       when :help    then @stdout.puts HELP_TEXT
+      when :version then @stdout.puts "agent-chat #{AgentChat::VERSION}"
       when :send    then send_message(parsed)
       when :receive then receive_messages(parsed)
       when :stream  then stream_messages(parsed)

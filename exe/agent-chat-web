@@ -2,6 +2,27 @@
 require 'agent_chat'
 require 'tmpdir'
 
+if ARGV.include?('--version') || ARGV.include?('-v')
+  puts "agent-chat-web #{AgentChat::VERSION}"
+  exit
+end
+
+if ARGV.include?('--help') || ARGV.include?('-h')
+  puts <<~HELP
+    agent-chat-web - Web UI for agent-chat
+
+    Usage:
+      agent-chat-web [options]
+
+    Options:
+      -v, --version   Show version
+      -h, --help      Show this help message
+
+    Starts a Sinatra web server on http://localhost:4567 and opens a browser.
+  HELP
+  exit
+end
+
 tmpdir = Dir.tmpdir
 AgentChat::Web::App.set :room_discovery, AgentChat::Web::RoomDiscoveryService.new(tmpdir: tmpdir)
 AgentChat::Web::App.set :service_factory, AgentChat::Web::ServiceFactory.new(tmpdir: tmpdir)
@@ -13,7 +34,7 @@ Thread.new do
   when /darwin/
     system('open', url)
   when /linux/
-    system('xdg-open', url)
+    system('xdg-open', url) if system('which', 'xdg-open', out: File::NULL, err: File::NULL)
   when /mswin|mingw/
     system('start', url)
   end
