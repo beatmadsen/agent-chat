@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+require 'agent_chat'
+require 'tmpdir'
+
+tmpdir = Dir.tmpdir
+AgentChat::Web::App.set :room_discovery, AgentChat::Web::RoomDiscoveryService.new(tmpdir: tmpdir)
+AgentChat::Web::App.set :service_factory, AgentChat::Web::ServiceFactory.new(tmpdir: tmpdir)
+
+Thread.new do
+  sleep 1
+  url = 'http://localhost:4567/index.html'
+  case RUBY_PLATFORM
+  when /darwin/
+    system('open', url)
+  when /linux/
+    system('xdg-open', url)
+  when /mswin|mingw/
+    system('start', url)
+  end
+end
+
+AgentChat::Web::App.run!

@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'agent_chat'
+
+AgentChat::CLIAdapter.setup($stdin, $stdout, ARGV).run(ARGV)

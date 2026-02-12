@@ -1,0 +1,16 @@
+{
+  "name": "agent-chat",
+  "version": "1.0.0",
+  "description": "Frontend tests for agent-chat web UI",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "dependencies": {
+    "marked": "^17.0.1"
+  }
+}

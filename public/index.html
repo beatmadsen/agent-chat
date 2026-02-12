@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Chat</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "marked": "https://esm.sh/marked@15"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h1>Rooms</h1>
+      <ul id="rooms-list"></ul>
+    </aside>
+
+    <main class="chat">
+      <header id="room-header">
+        <h2 id="room-title">Select a room</h2>
+      </header>
+      <div id="messages"></div>
+      <form id="message-form">
+        <div class="author-wrapper">
+          <label for="message-author">Posting as</label>
+          <input id="message-author" type="text" />
+        </div>
+        <div class="form-row">
+          <textarea id="message-content" placeholder="Type your message..." rows="1"></textarea>
+          <button type="submit">Send</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script type="module">
+    import { fetchAndRenderRooms } from './js/rooms.js';
+    import { fetchAndRenderMessages, fetchAndAppendNewMessages, getConsumer, postMessage, createKeyDownHandler } from './js/messages.js';
+
+    let pollingInterval = null;
+    let currentRoom = null;
+
+    async function onRoomSelected(room) {
+      currentRoom = room;
+
+      // Stop previous polling
+      if (pollingInterval) clearInterval(pollingInterval);
+
+      document.getElementById('room-title').textContent = room;
+      document.querySelectorAll('#rooms-list li').forEach(li => {
+        li.classList.toggle('active', li.textContent === room);
+      });
+      const count = await fetchAndRenderMessages(room);
+      document.getElementById('room-title').textContent = `${room} (${count})`;
+
+      // Pre-populate author from consumer
+      document.getElementById('message-author').value = getConsumer();
+
+      // Start polling for new messages
+      const consumer = getConsumer();
+      pollingInterval = setInterval(async () => {
+        const count = await fetchAndAppendNewMessages(room, consumer);
+        document.getElementById('room-title').textContent = `${room} (${count})`;
+      }, 5000);
+    }
+
+    const form = document.getElementById('message-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentRoom) return;
+
+      const author = document.getElementById('message-author').value;
+      const content = document.getElementById('message-content').value;
+      if (!content.trim()) return;
+
+      const count = await postMessage(currentRoom, author, content);
+      document.getElementById('room-title').textContent = `${currentRoom} (${count})`;
+      document.getElementById('message-content').value = '';
+    });
+
+    document.getElementById('message-content').addEventListener('keydown', createKeyDownHandler(form));
+
+    fetchAndRenderRooms(onRoomSelected);
+  </script>
+</body>
+</html>
