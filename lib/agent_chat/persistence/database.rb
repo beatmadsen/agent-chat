@@ -8,6 +8,8 @@ module AgentChat
         db_path = file_resolver.db_location
         FileUtils.mkdir_p(File.dirname(db_path))
         @db = SQLite3::Database.new(db_path)
+        @db.busy_timeout = 5000
+        @db.execute("PRAGMA journal_mode=WAL")
         create_tables
       end
 
