@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-09-20
+
+### Fixed
+- The web UI returned 404 at `http://localhost:4567`, the address the README
+  and `agent-chat-web --help` both give. Sinatra serves the public folder but
+  does not map `/` to its index, so only `/index.html` worked.
+
+### Changed
+- `puma` moves from 7.x to 8.x.
+- `required_ruby_version` is now `>= 3.2`. The stated floor of 3.0 was never
+  reachable, because sqlite3 requires 3.2.
+- Publishing requires multi-factor auth, and the gemspec carries the homepage,
+  bug tracker and documentation links it was missing.
+
 ## [1.0.2] - 2026-02-20
 
 ### Fixed

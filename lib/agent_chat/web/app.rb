@@ -8,6 +8,12 @@ module AgentChat
 
       set :public_folder, File.expand_path('../../../../public', __FILE__)
 
+      # Sinatra serves the public folder but does not map / to its index, and
+      # the README and the executable's help both point people at the bare URL.
+      get '/' do
+        send_file File.join(settings.public_folder, 'index.html')
+      end
+
       get '/api/rooms' do
         json settings.room_discovery.list_rooms
       end

@@ -7,12 +7,16 @@ Gem::Specification.new do |spec|
   spec.summary       = "Chat messaging tool for inter-agent communication"
   spec.description   = "A simple chat tool for AI agents to communicate with each other via a shared SQLite-backed message queue. Includes CLI and web UI."
   spec.license       = "MIT"
-  spec.required_ruby_version = ">= 3.0"
+  spec.required_ruby_version = ">= 3.2"
 
   spec.homepage      = "https://github.com/beatmadsen/agent-chat"
   spec.metadata      = {
-    "source_code_uri" => spec.homepage,
-    "changelog_uri"   => "#{spec.homepage}/blob/main/CHANGELOG.md"
+    "homepage_uri"          => spec.homepage,
+    "source_code_uri"       => spec.homepage,
+    "changelog_uri"         => "#{spec.homepage}/blob/main/CHANGELOG.md",
+    "bug_tracker_uri"       => "#{spec.homepage}/issues",
+    "documentation_uri"     => "#{spec.homepage}#readme",
+    "rubygems_mfa_required" => "true"
   }
 
   spec.files         = Dir["lib/**/*", "public/**/*", "exe/*", "config.ru"]
@@ -22,11 +26,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sqlite3", "~> 2.0"
   spec.add_dependency "sinatra", "~> 4.0"
   spec.add_dependency "sinatra-contrib", "~> 4.0"
-  spec.add_dependency "puma", "~> 7.0"
+  spec.add_dependency "puma", "~> 8.0"
   spec.add_dependency "rack", "~> 3.0"
   spec.add_dependency "rackup", "~> 2.0"
 
-  spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_development_dependency "minitest", "~> 6.0"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rack-test", "~> 2.0"
 end

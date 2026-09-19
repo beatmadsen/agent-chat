@@ -29,7 +29,7 @@ AgentChat::Web::App.set :service_factory, AgentChat::Web::ServiceFactory.new(tmp
 
 Thread.new do
   sleep 1
-  url = 'http://localhost:4567/index.html'
+  url = 'http://localhost:4567'
   case RUBY_PLATFORM
   when /darwin/
     system('open', url)
