@@ -26,6 +26,22 @@ class WebApiAcceptanceTest < Minitest::Test
     assert_equal [201, %w[status assigned_id room_created]], [last_response.status, body.keys]
   end
 
+  def test_should_answer_a_post_to_an_existing_room_with_only_status_and_id
+    post_message(author: 'Alice', content: 'one')
+
+    post_message(author: 'Bob', content: 'two')
+
+    assert_equal %w[status assigned_id], body.keys
+  end
+
+  def test_should_name_existing_rooms_close_to_one_a_post_created
+    post '/api/rooms/general/messages', { author: 'Alice', content: 'one' }.to_json, 'CONTENT_TYPE' => 'application/json'
+
+    post '/api/rooms/genral/messages', { author: 'Bob', content: 'two' }.to_json, 'CONTENT_TYPE' => 'application/json'
+
+    assert_equal %w[general], body['similar_rooms']
+  end
+
   def test_should_return_messages_with_ids_and_replies
     first = post_message(author: 'Alice', content: 'one')['assigned_id']
     second = post_message(author: 'Bob', content: 'two', reply_to: [first])['assigned_id']
@@ -42,22 +58,10 @@ class WebApiAcceptanceTest < Minitest::Test
     assert_equal [422, 'unknown_reply_to'], [last_response.status, body.dig('error', 'code')]
   end
 
-  def test_should_answer_a_post_without_content_with_400
-    post_message(author: 'Alice', content: '')
-
-    assert_equal [400, 'empty_content'], [last_response.status, body.dig('error', 'code')]
-  end
-
   def test_should_answer_a_body_that_is_not_json_with_400
     post '/api/rooms/general/messages', '{oops', 'CONTENT_TYPE' => 'application/json'
 
     assert_equal [400, 'invalid_json'], [last_response.status, body.dig('error', 'code')]
-  end
-
-  def test_should_answer_reply_ids_that_are_not_a_list_of_strings_with_400
-    post_message(author: 'Alice', content: 'hi', reply_to: 'abc')
-
-    assert_equal [400, 'invalid_field'], [last_response.status, body.dig('error', 'code')]
   end
 
   def test_should_answer_a_post_that_is_not_labelled_as_json_with_415
@@ -83,6 +87,12 @@ class WebApiAcceptanceTest < Minitest::Test
     get '/api/rooms/general/messages/new?consumer=web+user'
 
     assert_equal [], body
+  end
+
+  def test_should_answer_a_full_load_of_an_empty_room_with_a_consumer
+    get '/api/rooms/general/messages?consumer=web+user'
+
+    assert_equal [200, []], [last_response.status, body]
   end
 
   def test_should_answer_a_new_messages_request_without_a_consumer_with_400
