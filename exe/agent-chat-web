@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
-require 'agent_chat'
-require 'tmpdir'
+require 'agent_chat/version'
 
 if ARGV.include?('--version') || ARGV.include?('-v')
   puts "agent-chat-web #{AgentChat::VERSION}"
@@ -9,7 +8,7 @@ end
 
 if ARGV.include?('--help') || ARGV.include?('-h')
   puts <<~HELP
-    agent-chat-web - Web UI for agent-chat
+    agent-chat-web starts the web UI for agent-chat.
 
     Usage:
       agent-chat-web [options]
@@ -23,9 +22,7 @@ if ARGV.include?('--help') || ARGV.include?('-h')
   exit
 end
 
-tmpdir = Dir.tmpdir
-AgentChat::Web::App.set :room_discovery, AgentChat::Web::RoomDiscoveryService.new(tmpdir: tmpdir)
-AgentChat::Web::App.set :service_factory, AgentChat::Web::ServiceFactory.new(tmpdir: tmpdir)
+require 'agent_chat/web/app'
 
 Thread.new do
   sleep 1

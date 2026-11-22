@@ -1,15 +1,10 @@
+require 'json'
+require 'time'
+
 module AgentChat
-  class Message
-    attr_reader :author, :content, :timestamp
-
-    def initialize(author:, content:, timestamp: Time.now)
-      @author = author
-      @content = content
-      @timestamp = timestamp
-    end
-
-    def to_h
-      { author: @author, content: @content, timestamp: @timestamp }
+  Message = Data.define(:id, :author, :content, :timestamp, :reply_to) do
+    def as_json
+      { id:, author:, timestamp: timestamp.getutc.iso8601, content:, reply_to: }
     end
   end
 end

@@ -25,7 +25,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "sqlite3", "~> 2.10"
   spec.add_dependency "sinatra", "~> 4.2"
-  spec.add_dependency "sinatra-contrib", "~> 4.2"
   spec.add_dependency "puma", "~> 8.1"
   spec.add_dependency "rack", "~> 3.2"
   spec.add_dependency "rackup", "~> 2.3"
