@@ -16,7 +16,8 @@ module AgentChat
         return Problem.new(:room_created, message) if similar_rooms.empty?
 
         rooms = similar_rooms.map { |name| "a room named #{name}" }.join(' and ')
-        Problem.new(:room_created, "#{message} Note that #{rooms} exists.", similar_rooms:)
+        verb = similar_rooms.one? ? 'exists' : 'exist'
+        Problem.new(:room_created, "#{message} Note that #{rooms} #{verb}.", similar_rooms:)
       end
 
       def self.reset(room, backup_path)

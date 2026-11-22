@@ -1,4 +1,4 @@
-require 'sqlite3'
+require_relative 'sqlite'
 
 module AgentChat
   module Room

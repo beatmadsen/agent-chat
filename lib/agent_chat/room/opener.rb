@@ -1,5 +1,5 @@
 require 'fileutils'
-require 'sqlite3'
+require_relative 'sqlite'
 require_relative 'arrival'
 require_relative 'directory'
 require_relative 'schema'

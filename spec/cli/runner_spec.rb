@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'stringio'
+require 'timeout'
 require 'tmpdir'
 require 'agent_chat/cli/runner'
 
@@ -46,6 +47,42 @@ class RunnerSpec < Minitest::Test
     assert_equal "note: Room general did not exist; created it. You are the first here.\n", @stderr.string
   end
 
+  def test_should_strip_the_newline_echo_adds_to_the_content
+    run_cli('send', '--room', 'general', '--author', 'Alice', stdin: "Hello\n")
+    run_cli('receive', '--json', '--room', 'general', '--all', stdout: @stdout = StringIO.new)
+
+    assert_equal 'Hello', JSON.parse(@stdout.string)['content']
+  end
+
+  def test_should_refuse_a_reply_to_an_unknown_id_with_status_1
+    assert_equal 1, run_cli('send', '--json', '--room', 'general', '--author', 'Bob', '--reply-to', 'zzzzzzz', stdin: 'two')
+  end
+
+  def test_should_print_the_whole_history_on_every_read_with_all
+    run_cli('send', '--room', 'general', '--author', 'Alice', stdin: 'one')
+    run_cli('receive', '--json', '--room', 'general', '--all')
+
+    run_cli('receive', '--json', '--room', 'general', '--all', stdout: @stdout = StringIO.new)
+
+    assert_equal 'one', JSON.parse(@stdout.string)['content']
+  end
+
+  def test_should_put_how_it_read_a_misspelt_flag_in_the_reply_to_a_send
+    run_cli('send', '--json', '--romo', 'general', '--author', 'Alice', stdin: 'hi')
+
+    assert_equal ['Read --romo as --room'], JSON.parse(@stdout.string)['warnings'].map { |warning| warning['message'] }
+  end
+
+  def test_should_report_how_it_read_a_misspelt_command_on_stderr_when_reading
+    run_cli('send', '--room', 'general', '--author', 'Alice', stdin: 'hi')
+    @stderr = StringIO.new
+
+    run_cli('recieve', '--json', '--room', 'general', '--consumer', 'Bob')
+
+    assert_equal %({"warning":{"code":"interpreted_command","message":"Read recieve as receive","given":"recieve","interpreted_as":"receive"}}\n),
+                 @stderr.string
+  end
+
   def test_should_stream_the_history_and_then_new_messages_when_following_everything
     run_cli('send', '--room', 'general', '--author', 'Alice', stdin: 'old')
     pauses = [-> { run_cli('send', '--room', 'general', '--author', 'Bob', stdin: 'new', stdout: StringIO.new) },
@@ -61,6 +98,26 @@ class RunnerSpec < Minitest::Test
     run_cli('send', '--room', 'general', '--author', 'Alice', stdin: 'hi')
 
     assert_equal 0, run_cli('receive', '--room', 'general', '--all', stdout: closed)
+  end
+
+  def test_should_let_ctrl_c_stop_a_send_that_is_waiting_for_input
+    reader, writer = IO.pipe
+    waiting = Thread::Queue.new
+    stdin = Object.new.tap { |input| input.define_singleton_method(:read) { waiting << :reading; reader.read } }
+    terminal = AgentChat::CLI::Terminal.new(stdin:, stdout: @stdout, stderr: @stderr)
+    # An Interrupt escaping into Minitest would abort the run and still exit 0.
+    sender = Thread.new do
+      AgentChat::CLI::Runner.new(terminal, root: @tmpdir).run(%w[send --room general --author Alice])
+    rescue Interrupt
+      'Interrupt escaped the runner'
+    end
+    waiting.pop
+
+    sender.raise(Interrupt)
+
+    assert_equal 0, Timeout.timeout(5) { sender.value }
+  ensure
+    [reader, writer].each(&:close)
   end
 
   private

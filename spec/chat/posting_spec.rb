@@ -27,6 +27,10 @@ class PostingSpec < Minitest::Test
     assert_equal :empty_content, post(" \n").problem.code
   end
 
+  def test_should_reject_a_reply_to_an_unknown_id
+    assert_equal :unknown_reply_to, post('reply', reply_to: %w[zzzzzzz]).problem.code
+  end
+
   def test_should_list_every_unknown_reply_id_in_the_rejection
     post('known')
 

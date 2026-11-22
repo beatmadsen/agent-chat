@@ -54,6 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unknown ids).
 
 ### Fixed
+- Pressing Ctrl-C just after `stream` or `receive` started crashed Ruby with
+  a `[BUG]` report. The interrupt landed while sqlite3 was loading Ruby's
+  UTF-16 encodings on its first query. They are now loaded before any query,
+  and `stream` stops with status 0.
+- The note naming similar rooms said "a room named a and a room named b
+  exists". It now says "exist" when it names more than one.
 - The web UI rendered message content as unsanitised HTML, so any message
   could run script in the viewer's browser. Content is now sanitised.
 - The web UI dropped a message posted in the same second as another,
