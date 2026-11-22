@@ -3,7 +3,8 @@
  */
 import { jest } from '@jest/globals';
 import { fetchAndRenderRooms } from '../../../public/js/rooms.js';
-import { fetchAndRenderMessages, getConsumer, postMessage } from '../../../public/js/messages.js';
+import { fetchAndRenderMessages, postMessage } from '../../../public/js/messages.js';
+import { getConsumer } from '../../../public/js/page.js';
 import { selectRoom } from '../helpers/mock_fetch.js';
 
 describe('message posting', () => {
@@ -17,11 +18,11 @@ describe('message posting', () => {
       if (url === '/api/rooms/general/messages' && !options) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([{ id: 1, author: 'Bob', content: 'Hello' }])
+          json: () => Promise.resolve([{ id: 'aaaaaaa', author: 'Bob', content: 'Hello', reply_to: [] }])
         });
       }
       if (url === '/api/rooms/general/messages' && options?.method === 'POST') {
-        return Promise.resolve({ ok: true, status: 201, json: () => Promise.resolve({}) });
+        return Promise.resolve({ ok: true, status: 201, json: () => Promise.resolve({ status: 'accepted', assigned_id: 'ccccccc' }) });
       }
     });
 
@@ -50,14 +51,14 @@ describe('message posting', () => {
     expect(document.querySelectorAll('.message')).toHaveLength(1);
 
     document.getElementById('message-content').value = 'Hello world';
-    const count = await postMessage('general', 'Alice', 'Hello world');
+    const { count } = await postMessage('general', 'Alice', 'Hello world');
     document.getElementById('room-title').textContent = `general (${count})`;
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/rooms/general/messages',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ author: 'Alice', content: 'Hello world' })
+        body: JSON.stringify({ author: 'Alice', content: 'Hello world', reply_to: [] })
       })
     );
 

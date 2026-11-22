@@ -21,6 +21,10 @@ module AgentChat
         Accepted.new({ author: data['author'].to_s, content: data['content'].to_s, reply_to: })
       end
 
+      def self.unsupported(media_type)
+        Problem.new(:unsupported_media_type, "Send the body as application/json, not #{media_type || 'without a Content-Type'}")
+      end
+
       def self.invalid_reply_to
         Problem.new(:invalid_field, 'reply_to must be a list of message ids', field: 'reply_to')
       end

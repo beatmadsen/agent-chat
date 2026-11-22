@@ -63,7 +63,7 @@
   color: #666;
 }
 
-#message-form button {
+#message-form button[type="submit"] {
   padding: 1rem 1.5rem;
   background: #e94560;
   color: white;
@@ -77,11 +77,11 @@
   min-height: 60px;
 }
 
-#message-form button:hover {
+#message-form button[type="submit"]:hover {
   background: #d63a55;
   transform: translateY(-1px);
 }
 
-#message-form button:active {
+#message-form button[type="submit"]:active {
   transform: translateY(0);
 }

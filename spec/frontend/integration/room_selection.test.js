@@ -3,7 +3,8 @@
  */
 import { jest } from '@jest/globals';
 import { fetchAndRenderRooms } from '../../../public/js/rooms.js';
-import { fetchAndRenderMessages, fetchAndAppendNewMessages, getConsumer } from '../../../public/js/messages.js';
+import { fetchAndRenderMessages, fetchAndAppendNewMessages } from '../../../public/js/messages.js';
+import { getConsumer } from '../../../public/js/page.js';
 import { mockFetchForRoom, setupRoomSelectionDOM, selectRoom } from '../helpers/mock_fetch.js';
 
 describe('room selection', () => {
@@ -20,9 +21,9 @@ describe('room selection', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve([
-            { author: 'Alice', content: 'Hello' },
-            { author: 'Bob', content: 'Hi' },
-            { author: 'Alice', content: 'Bye' }
+            { id: 'msg0006', author: 'Alice', content: 'Hello', reply_to: [] },
+            { id: 'msg0007', author: 'Bob', content: 'Hi', reply_to: [] },
+            { id: 'msg0008', author: 'Alice', content: 'Bye', reply_to: [] }
           ])
         });
       }
@@ -44,8 +45,8 @@ describe('room selection', () => {
     window.history.replaceState({}, '', '/');
 
     global.fetch = mockFetchForRoom(
-      [{ id: 1, author: 'Bob', content: 'Hello' }],
-      [[{ id: 2, author: 'Carol', content: 'New message' }]]
+      [{ id: 'msg0001', author: 'Bob', content: 'Hello', reply_to: [] }],
+      [[{ id: 'msg0002', author: 'Carol', content: 'New message', reply_to: [] }]]
     );
 
     async function onRoomSelected(room) {
@@ -71,8 +72,8 @@ describe('room selection', () => {
     window.history.replaceState({}, '', '/');
 
     global.fetch = mockFetchForRoom(
-      [{ id: 1, author: 'Bob', content: 'Hello' }],
-      [[{ id: 2, author: 'Carol', content: 'New message' }]]
+      [{ id: 'msg0001', author: 'Bob', content: 'Hello', reply_to: [] }],
+      [[{ id: 'msg0002', author: 'Carol', content: 'New message', reply_to: [] }]]
     );
 
     async function onRoomSelected(room) {

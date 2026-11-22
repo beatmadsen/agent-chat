@@ -1,56 +1,41 @@
-import { MessageFeed, renderMessageFeed } from './message_feed.js';
-
-export { MessageFeed } from './message_feed.js';
+import { MessageFeed } from './feed/message_feed.js';
+import { renderMessageFeed } from './feed/message_view.js';
 
 let currentFeed = new MessageFeed();
-
-export function getConsumer() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('consumer') || 'web user';
-}
 
 export async function fetchAndRenderMessages(room, consumer) {
   const url = consumer
     ? `/api/rooms/${room}/messages?consumer=${encodeURIComponent(consumer)}`
     : `/api/rooms/${room}/messages`;
   const response = await fetch(url);
-  const messages = await response.json();
-
   currentFeed = new MessageFeed();
-  currentFeed.setMessages(messages);
-  renderMessageFeed(currentFeed, document.getElementById('messages'));
-
+  show(await response.json());
   return currentFeed.count;
 }
 
 export async function fetchAndAppendNewMessages(room, consumer) {
   const response = await fetch(`/api/rooms/${room}/messages/new?consumer=${encodeURIComponent(consumer)}`);
-  const messages = await response.json();
-
-  currentFeed.appendMessages(messages);
-  renderMessageFeed(currentFeed, document.getElementById('messages'));
-
+  show(await response.json());
   return currentFeed.count;
 }
 
-export async function postMessage(room, author, content) {
-  await fetch(`/api/rooms/${room}/messages`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ author, content })
-  });
+export async function postMessage(room, author, content, replyTo = []) {
+  const answer = await sendJson(`/api/rooms/${room}/messages`, { author, content, reply_to: replyTo });
+  if (answer.status !== 'accepted') return { count: currentFeed.count, error: answer.error.message };
 
-  currentFeed.messages.push({ author, content, optimistic: true });
-  renderMessageFeed(currentFeed, document.getElementById('messages'));
-
-  return currentFeed.count;
+  show([{ id: answer.assigned_id, author, content, timestamp: new Date().toISOString(), reply_to: replyTo }]);
+  return { count: currentFeed.count, error: null };
 }
 
-export function createKeyDownHandler(form) {
-  return function(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    }
-  };
+function show(messages) {
+  const added = currentFeed.appendMessages(messages);
+  if (added.length > 0 || currentFeed.count === 0) {
+    renderMessageFeed(currentFeed, document.getElementById('messages'));
+  }
+}
+
+async function sendJson(url, body) {
+  const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const failed = { status: 'failed', error: { message: `The server could not take the message (HTTP ${response.status})` } };
+  return response.json().catch(() => failed);
 }

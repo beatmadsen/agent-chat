@@ -2,13 +2,14 @@ ENV['RACK_ENV'] = 'test'
 
 require 'minitest/autorun'
 require 'rack/test'
+require 'rack/lint'
 require 'tmpdir'
 require 'agent_chat/web/app'
 
 class WebApiAcceptanceTest < Minitest::Test
   include Rack::Test::Methods
 
-  def app = AgentChat::Web::App
+  def app = Rack::Lint.new(AgentChat::Web::App)
 
   def setup
     @tmpdir = Dir.mktmpdir
@@ -59,6 +60,12 @@ class WebApiAcceptanceTest < Minitest::Test
     assert_equal [400, 'invalid_field'], [last_response.status, body.dig('error', 'code')]
   end
 
+  def test_should_answer_a_post_that_is_not_labelled_as_json_with_415
+    post '/api/rooms/general/messages', { author: 'Alice', content: 'hi' }.to_json, 'CONTENT_TYPE' => 'text/plain'
+
+    assert_equal [415, 'unsupported_media_type'], [last_response.status, body.dig('error', 'code')]
+  end
+
   def test_should_give_a_consumer_only_messages_it_has_not_read
     post_message(author: 'Alice', content: 'one')
     get '/api/rooms/general/messages/new?consumer=Carol'
@@ -91,7 +98,7 @@ class WebApiAcceptanceTest < Minitest::Test
   end
 
   def test_should_list_the_rooms_in_name_order
-    %w[beta alpha].each { |room| post "/api/rooms/#{room}/messages", { author: 'A', content: 'x' }.to_json }
+    %w[beta alpha].each { |room| post "/api/rooms/#{room}/messages", { author: 'A', content: 'x' }.to_json, 'CONTENT_TYPE' => 'application/json' }
 
     get '/api/rooms'
 

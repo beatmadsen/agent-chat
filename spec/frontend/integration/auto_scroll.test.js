@@ -10,8 +10,8 @@ function setupScrollTest() {
   window.history.replaceState({}, '', '/');
 
   global.fetch = mockFetchForRoom(
-    [{ id: 1, author: 'Bob', content: 'Hello' }],
-    [[{ id: 2, author: 'Carol', content: 'New message' }]]
+    [{ id: 'msg0001', author: 'Bob', content: 'Hello', reply_to: [] }],
+    [[{ id: 'msg0002', author: 'Carol', content: 'New message', reply_to: [] }]]
   );
 }
 

@@ -3,7 +3,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { createKeyDownHandler } from '../../public/js/messages.js';
+import { createKeyDownHandler } from '../../public/js/page.js';
 
 describe('createKeyDownHandler', () => {
   test('should submit form when Enter pressed', () => {

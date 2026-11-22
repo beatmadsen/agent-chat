@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent Chat</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/css/style.css">
   <script type="importmap">
   {
     "imports": {
-      "marked": "https://esm.sh/marked@18.2.1"
+      "marked": "https://esm.sh/marked@18.2.1",
+      "dompurify": "https://esm.sh/dompurify@3.4.18"
     }
   }
   </script>
@@ -30,6 +32,8 @@
           <label for="message-author">Posting as</label>
           <input id="message-author" type="text" />
         </div>
+        <div id="reply-selection"></div>
+        <div id="post-error" role="alert"></div>
         <div class="form-row">
           <textarea id="message-content" placeholder="Type your message..." rows="1"></textarea>
           <button type="submit">Send</button>
@@ -40,16 +44,35 @@
 
   <script type="module">
     import { fetchAndRenderRooms } from './js/rooms.js';
-    import { fetchAndRenderMessages, fetchAndAppendNewMessages, getConsumer, postMessage, createKeyDownHandler } from './js/messages.js';
+    import { fetchAndRenderMessages, fetchAndAppendNewMessages, postMessage } from './js/messages.js';
+    import { getConsumer, createKeyDownHandler } from './js/page.js';
+    import { ReplySelection } from './js/reply_selection.js';
+    import { renderReplySelection } from './js/reply_chips.js';
 
     let pollingInterval = null;
     let currentRoom = null;
+    const replies = new ReplySelection();
+    const replyContainer = document.getElementById('reply-selection');
+    const postError = document.getElementById('post-error');
+
+    function resetReplies() {
+      replies.clear();
+      renderReplySelection(replies, replyContainer);
+      postError.textContent = '';
+    }
+
+    document.getElementById('messages').addEventListener('reply', (event) => {
+      replies.add(event.detail);
+      renderReplySelection(replies, replyContainer);
+      document.getElementById('message-content').focus();
+    });
 
     async function onRoomSelected(room) {
       currentRoom = room;
 
       // Stop previous polling
       if (pollingInterval) clearInterval(pollingInterval);
+      resetReplies();
 
       document.getElementById('room-title').textContent = room;
       document.querySelectorAll('#rooms-list li').forEach(li => {
@@ -78,9 +101,14 @@
       const content = document.getElementById('message-content').value;
       if (!content.trim()) return;
 
-      const count = await postMessage(currentRoom, author, content);
+      const { count, error } = await postMessage(currentRoom, author, content, replies.ids);
       document.getElementById('room-title').textContent = `${currentRoom} (${count})`;
+      if (error) {
+        postError.textContent = error;
+        return;
+      }
       document.getElementById('message-content').value = '';
+      resetReplies();
     });
 
     document.getElementById('message-content').addEventListener('keydown', createKeyDownHandler(form));

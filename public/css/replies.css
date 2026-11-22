@@ -1,0 +1,110 @@
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-header .message-author {
+  margin-bottom: 0;
+}
+
+.message-id {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.reply-button {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  color: #888;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  cursor: pointer;
+}
+
+.reply-button:hover {
+  color: #e94560;
+  border-color: #e94560;
+}
+
+.message-replies {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.reply-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #888;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reply-link::before {
+  content: "\21B3  ";
+}
+
+.reply-link:hover {
+  color: #e94560;
+  text-decoration: underline;
+}
+
+.message.highlighted {
+  outline: 2px solid #e94560;
+  transition: outline-color 0.3s;
+}
+
+#reply-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#reply-selection:not(:empty) {
+  margin-bottom: 0.75rem;
+}
+
+.reply-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #0f3460;
+  border-radius: 999px;
+  padding: 0.2rem 0.4rem 0.2rem 0.75rem;
+  font-size: 0.8rem;
+  color: #ccc;
+  max-width: 100%;
+}
+
+.reply-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reply-chip-remove {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.reply-chip-remove:hover {
+  color: #e94560;
+}
+
+#post-error:not(:empty) {
+  color: #ff8a8a;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}

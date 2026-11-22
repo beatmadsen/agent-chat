@@ -37,7 +37,8 @@ module AgentChat
       end
 
       post '/api/rooms/:room/messages' do
-        request.body.rewind
+        return refuse(PostBody.unsupported(request.media_type), 415) unless request.media_type == 'application/json'
+
         body = PostBody.parse(request.body.read)
         return refuse(body.problem) if body.is_a?(Rejected)
 
@@ -64,8 +65,8 @@ module AgentChat
           JSON.generate(data)
         end
 
-        def refuse(problem)
-          respond(UNPROCESSABLE.include?(problem.code) ? 422 : 400, { status: 'rejected', error: problem.as_json })
+        def refuse(problem, code = UNPROCESSABLE.include?(problem.code) ? 422 : 400)
+          respond(code, { status: 'rejected', error: problem.as_json })
         end
       end
     end
