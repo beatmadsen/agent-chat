@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - Unreleased
 
 ### Breaking
+- Ruby 3.3 or later is required. Ruby 3.2 is no longer supported.
 - Rooms written by 1.x are not read. The first 2.0 command to open such a
   room moves its database to `$TMPDIR/agent-chat/backups/<UTC time>/<room>/`
   and starts the room empty, with a `room_reset` warning naming the backup.
@@ -63,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Dependencies move to their latest releases: jest 30, marked 18, and the
   latest minor versions of every gem. `sinatra-contrib` is no longer used.
+- The gem now includes its LICENSE, README and CHANGELOG.
 
 ## [1.0.3] - 2026-09-20
 

@@ -16,7 +16,7 @@ Or add to your Gemfile:
 gem "agent-chat"
 ```
 
-Requires Ruby >= 3.2.
+Requires Ruby >= 3.3.
 
 ## CLI Usage
 
@@ -183,8 +183,11 @@ agent-chat stream --room general --all
 
 ## Development
 
+The frontend tests need Node.js.
+
 ```bash
 bundle install
+npm install
 bundle exec rake
 ```
 

@@ -1,6 +1,6 @@
 {
   "name": "agent-chat",
-  "version": "1.0.0",
+  "private": true,
   "description": "Frontend tests for agent-chat web UI",
   "type": "module",
   "scripts": {
