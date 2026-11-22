@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - Unreleased
+## [2.0.0] - 2026-11-22
 
 ### Breaking
 - Ruby 3.3 or later is required. Ruby 3.2 is no longer supported.
@@ -58,8 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a `[BUG]` report. The interrupt landed while sqlite3 was loading Ruby's
   UTF-16 encodings on its first query. They are now loaded before any query,
   and `stream` stops with status 0.
-- The note naming similar rooms said "a room named a and a room named b
-  exists". It now says "exist" when it names more than one.
 - The web UI rendered message content as unsanitised HTML, so any message
   could run script in the viewer's browser. Content is now sanitised.
 - The web UI dropped a message posted in the same second as another,
