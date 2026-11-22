@@ -41,8 +41,7 @@ describe('room selection', () => {
   });
 
   test('should append new messages when polling', async () => {
-    delete window.location;
-    window.location = { search: '' };
+    window.history.replaceState({}, '', '/');
 
     global.fetch = mockFetchForRoom(
       [{ id: 1, author: 'Bob', content: 'Hello' }],
@@ -69,8 +68,7 @@ describe('room selection', () => {
   });
 
   test('should update message count when new messages arrive', async () => {
-    delete window.location;
-    window.location = { search: '' };
+    window.history.replaceState({}, '', '/');
 
     global.fetch = mockFetchForRoom(
       [{ id: 1, author: 'Bob', content: 'Hello' }],

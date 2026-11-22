@@ -26,8 +26,7 @@ describe('consumer', () => {
   });
 
   test('should use consumer from URL parameter', async () => {
-    delete window.location;
-    window.location = { search: '?consumer=Alice' };
+    window.history.replaceState({}, '', '/?consumer=Alice');
 
     global.fetch = jest.fn(() =>
       Promise.resolve({
@@ -45,8 +44,7 @@ describe('consumer', () => {
   });
 
   test('should default to "web user" when no consumer in URL', async () => {
-    delete window.location;
-    window.location = { search: '' };
+    window.history.replaceState({}, '', '/');
 
     global.fetch = jest.fn(() =>
       Promise.resolve({

@@ -8,8 +8,7 @@ import { selectRoom } from '../helpers/mock_fetch.js';
 
 describe('message posting', () => {
   test('should post message and add to feed when form submitted', async () => {
-    delete window.location;
-    window.location = { search: '?consumer=Alice' };
+    window.history.replaceState({}, '', '/?consumer=Alice');
 
     global.fetch = jest.fn((url, options) => {
       if (url === '/api/rooms') {

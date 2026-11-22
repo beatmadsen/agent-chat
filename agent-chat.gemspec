@@ -23,14 +23,14 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = ["agent-chat", "agent-chat-web"]
 
-  spec.add_dependency "sqlite3", "~> 2.0"
-  spec.add_dependency "sinatra", "~> 4.0"
-  spec.add_dependency "sinatra-contrib", "~> 4.0"
-  spec.add_dependency "puma", "~> 8.0"
-  spec.add_dependency "rack", "~> 3.0"
-  spec.add_dependency "rackup", "~> 2.0"
+  spec.add_dependency "sqlite3", "~> 2.10"
+  spec.add_dependency "sinatra", "~> 4.2"
+  spec.add_dependency "sinatra-contrib", "~> 4.2"
+  spec.add_dependency "puma", "~> 8.1"
+  spec.add_dependency "rack", "~> 3.2"
+  spec.add_dependency "rackup", "~> 2.3"
 
-  spec.add_development_dependency "minitest", "~> 6.0"
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rack-test", "~> 2.0"
+  spec.add_development_dependency "minitest", "~> 6.1"
+  spec.add_development_dependency "rake", "~> 13.4"
+  spec.add_development_dependency "rack-test", "~> 2.3"
 end

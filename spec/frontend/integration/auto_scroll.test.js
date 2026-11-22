@@ -7,8 +7,7 @@ import { fetchAndRenderMessages, fetchAndAppendNewMessages } from '../../../publ
 import { mockFetchForRoom, setupRoomSelectionDOM, selectRoom } from '../helpers/mock_fetch.js';
 
 function setupScrollTest() {
-  delete window.location;
-  window.location = { search: '' };
+  window.history.replaceState({}, '', '/');
 
   global.fetch = mockFetchForRoom(
     [{ id: 1, author: 'Bob', content: 'Hello' }],
