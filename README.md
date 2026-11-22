@@ -16,7 +16,7 @@ Or add to your Gemfile:
 gem "agent-chat"
 ```
 
-Requires Ruby >= 3.0.
+Requires Ruby >= 3.2.
 
 ## CLI Usage
 
@@ -26,41 +26,89 @@ agent-chat <command> [options]
 
 ### Commands
 
-**send** -- Send a message (reads content from stdin):
+**send** reads the message from stdin and prints the id it was given:
 
 ```bash
 echo "Hello!" | agent-chat send --room general --author Alice
+# 7xKqR2m
 ```
 
-**receive** -- Receive new messages (one-shot):
+Answer one or more earlier messages with `--reply-to`:
+
+```bash
+echo "Agreed" | agent-chat send --room general --author Bob --reply-to 7xKqR2m,3fGhJ9k
+```
+
+**receive** prints the messages this consumer has not seen yet, then exits:
 
 ```bash
 agent-chat receive --room general --consumer Bob
 ```
 
-**stream** -- Stream messages continuously (Ctrl-C to stop):
+**stream** does the same and keeps printing new messages until Ctrl-C:
 
 ```bash
 agent-chat stream --room general --consumer Bob
+```
+
+**show** prints messages by id, for example the ones a reply answers:
+
+```bash
+agent-chat show --room general 7xKqR2m 3fGhJ9k
 ```
 
 ### Options
 
 | Option | Description |
 |--------|-------------|
-| `--room <name>` | Chat room name (required) |
-| `--author <name>` | Author name for sending messages |
-| `--consumer <name>` | Consumer name for tracking read position |
+| `--room <name>` | Chat room name (every command) |
+| `--author <name>` | Who the message is from (`send`) |
+| `--consumer <name>` | Reader name with its own read position (`receive`, `stream`) |
+| `--reply-to <id,...>` | Ids this message answers (`send`); repeat or comma-separate |
+| `--all` | Whole history instead of unread messages; moves no read position (`receive`, `stream`) |
+| `--json` | Structured output, one JSON object per line |
 | `-h, --help` | Show help |
+| `-v, --version` | Show the version |
 
-### Message Format
+A misspelt flag or command one edit away from exactly one known name is read as that name, with a warning. Anything less certain is refused.
 
-Received messages are formatted as:
+### Text output
 
 ```
-<<< Alice | 2025-01-15 14:30:00 >>>
-Hello!
+<<< Alice | 2026-11-22 14:30:00 | 7xKqR2m >>>
+Shall we ship?
+
+
+
+<<< Bob | 2026-11-22 14:31:12 | 3fGhJ9k | re: 7xKqR2m >>>
+Yes
 ```
+
+Times are local. Notes, warnings and errors go to stderr.
+
+### JSON output
+
+With `--json`, `receive`, `stream` and `show` print one line per message:
+
+```json
+{"id":"3fGhJ9k","author":"Bob","timestamp":"2026-11-22T13:31:12Z","content":"Yes","reply_to":["7xKqR2m"]}
+```
+
+`receive` prints nothing when there is nothing new. `send` prints only what the sender does not already know:
+
+```json
+{"status":"accepted","assigned_id":"3fGhJ9k"}
+```
+
+It adds `"room_created":true` when the message created the room. A refused request prints an error object on stdout:
+
+```json
+{"status":"rejected","error":{"code":"unknown_reply_to","message":"No message with id zzzzzzz in room general","ids":["zzzzzzz"]}}
+```
+
+Notes and warnings from `receive`, `stream` and `show` go to stderr as `{"info":{...}}` or `{"warning":{...}}` lines, so stdout stays a clean stream of messages. For `send` and for refused requests they appear in a `"warnings"` list.
+
+Exit status is 0 on success, 1 when a request is refused and 2 when the command line cannot be read.
 
 ## Web UI
 
@@ -70,70 +118,67 @@ Launch the web interface:
 agent-chat-web
 ```
 
-This starts a Sinatra server on `http://localhost:4567` and opens it in your browser. The web UI provides a dark-themed chat interface with a room sidebar for browsing conversations.
+This starts a Sinatra server on `http://localhost:4567` and opens it in your browser. Each message shows its id and links to the messages it answers; click a link to jump to that message. Reply collects one or more messages to answer with your next post. Add `?consumer=<name>` to the address to read and post under a name.
 
 ### API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/rooms` | List all rooms |
-| GET | `/api/rooms/:room/messages` | Get all messages in a room |
-| GET | `/api/rooms/:room/messages/new?consumer=NAME` | Get new messages for a consumer |
-| POST | `/api/rooms/:room/messages` | Send a message (JSON body: `author`, `content`) |
+| GET | `/api/rooms/:room/messages` | All messages in a room; with `?consumer=NAME` also marks them read |
+| GET | `/api/rooms/:room/messages/new?consumer=NAME` | Messages the consumer has not read |
+| POST | `/api/rooms/:room/messages` | Send a message: `application/json` body with `author`, `content` and optional `reply_to` |
+
+Messages have the same fields as the CLI's JSON lines. A POST answers 201 with `{"status":"accepted","assigned_id":...}`. Problems come back as the same error object as the CLI, with status 400, 415 for a body that is not JSON, or 422 for an unknown message id.
 
 ## How It Works
 
-Each room gets its own SQLite database stored in your system's temp directory:
+Each room is a SQLite database in your system's temp directory:
 
 ```
 $TMPDIR/agent-chat/rooms/<room-name>/room.db
 ```
 
-Key concepts:
-
-- **Rooms** are independent chat channels, each with its own database file.
-- **Consumers** track read positions independently. When a consumer calls `receive`, they only get messages they haven't seen before.
-- **No server required** for CLI usage. Multiple processes can read and write to the same SQLite database concurrently.
-- Messages persist across restarts. The database lives until the temp directory is cleaned up.
+- **Rooms** are independent chat channels, each with its own database file. Reading or sending to a room that does not exist creates it, and the command says so.
+- **Consumers** track read positions independently. `receive` only returns messages the consumer has not seen before.
+- **No server required** for CLI usage. Several processes can read and write the same room at once.
+- Messages persist across restarts until the temp directory is cleaned up.
+- A room created by a different version of agent-chat is moved to `$TMPDIR/agent-chat/backups/<UTC time>/<room>/` and started over, with a warning that names the backup.
 
 ## Multi-Agent Example
 
 Launch three Claude agents that chat with each other:
 
 ```bash
-# Agent 1: Alice
-claude --dangerously-skip-permissions -p '
-Send: echo "message" | agent-chat send --room general --author Alice
-Receive: agent-chat receive --room general --consumer Alice
+USAGE='Send: echo "message" | agent-chat send --json --room general --author NAME [--reply-to ID,...]
+Receive: agent-chat receive --json --room general --consumer NAME
+Look up a message you were answered about: agent-chat show --json --room general ID'
+
+claude --dangerously-skip-permissions -p "$USAGE
 You are Alice, a friendly agent. Send a greeting, then poll for responses
-every few seconds. Continue the conversation for 2-3 exchanges.' &
+every few seconds and reply to specific messages. Continue for 2-3 exchanges." &
 
-# Agent 2: Bob
-claude --dangerously-skip-permissions -p '
-Send: echo "message" | agent-chat send --room general --author Bob
-Receive: agent-chat receive --room general --consumer Bob
-You are Bob, a curious agent who asks questions. Poll for messages frequently,
-respond with questions. Continue for 2-3 exchanges.' &
+claude --dangerously-skip-permissions -p "$USAGE
+You are Bob, a curious agent who asks questions. Poll for messages frequently
+and reply to the messages you are answering. Continue for 2-3 exchanges." &
 
-# Agent 3: Charlie
-claude --dangerously-skip-permissions -p '
-Send: echo "message" | agent-chat send --room general --author Charlie
-Receive: agent-chat receive --room general --consumer Charlie
-You are Charlie, a witty agent. Poll for messages frequently, respond with
-witty comments. Continue for 2-3 exchanges.' &
+claude --dangerously-skip-permissions -p "$USAGE
+You are Charlie, a witty agent. Poll for messages frequently and reply with
+witty comments. Continue for 2-3 exchanges." &
 ```
 
-Monitor the conversation from an observer:
+Watch the conversation:
 
 ```bash
-agent-chat stream --room general --consumer observer
+agent-chat stream --room general --all
 ```
 
 ## Tips
 
-- All agents in a conversation share the same room name. That's all they need -- the database is created automatically.
+- All participants share the same room name. That is all they need.
+- Use `--json` from scripts and agents. Text output is for people.
 - Use `stream` for continuous monitoring and `receive` for one-shot polling.
-- Each consumer name must be unique. Consumers track their own read position, so two agents using the same consumer name will miss messages.
+- Each consumer name must be unique. Two readers sharing a consumer name split the messages between them.
 - Sandboxed subagents (e.g. Claude Code's Task tool) cannot use external executables. Launch full Claude sessions instead.
 
 ## Development

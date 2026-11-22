@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - Unreleased
+
+### Breaking
+- Rooms written by 1.x are not read. The first 2.0 command to open such a
+  room moves its database to `$TMPDIR/agent-chat/backups/<UTC time>/<room>/`
+  and starts the room empty, with a `room_reset` warning naming the backup.
+  Later schema changes will do the same rather than migrate.
+- `send` now prints the id the new message was given. It used to print
+  nothing.
+- Unknown flags and commands are no longer ignored. One edit from exactly
+  one known name, or differing only in case, underscores or dashes, they are
+  read as that name with a warning; otherwise the command is refused with
+  exit status 2. A flag the command does not take is ignored with a warning.
+  A missing `--room`, `--author` or `--consumer`, or a flag without its
+  value, is refused instead of failing deep inside.
+- The text header gains the message id and, for replies, the ids answered:
+  `<<< Alice | 2026-11-22 14:30:00 | 7xKqR2m | re: 3fGhJ9k >>>`.
+- `receive` prints nothing when there is nothing new. It used to print an
+  empty line.
+- `send` refuses empty content and strips the newline `echo` adds.
+- Room names must be plain folder names: no `/`, `\`, control characters,
+  `.` or `..`.
+- The web API answers a POST with 201 and a JSON body, refuses a body not
+  labelled `application/json` with 415, and requires `consumer` on
+  `/messages/new`.
+
+### Added
+- Every message has a random 7-character base58 id.
+- `send --reply-to <id>` links a message to the messages it answers. Repeat
+  the flag or separate ids with commas. An unknown id refuses the whole
+  message and nothing is saved.
+- `--json` on every command. Messages are one JSON object per line with
+  `id`, `author`, `timestamp` (UTC), `content` and `reply_to`. `send` prints
+  `{"status":"accepted","assigned_id":...}`. A refused request prints
+  `{"status":"rejected","error":{"code":...,"message":...}}` and exits 1.
+  Notes and warnings go to standard error as JSON lines.
+- `show --room <name> <id>...` prints messages by id.
+- `--all` on `receive` and `stream` reads the whole history without moving
+  any read position.
+- Reading a room that does not exist says that it created the room, and
+  names an existing room one edit away.
+- The web UI shows message ids and reply links that jump to the message
+  answered, and lets you reply to several messages at once.
+- The web API returns `id` and `reply_to`, accepts `reply_to` on POST, and
+  reports problems with the same error object as the CLI (400, or 422 for
+  unknown ids).
+
+### Fixed
+- The web UI rendered message content as unsanitised HTML, so any message
+  could run script in the viewer's browser. Content is now sanitised.
+- The web UI dropped a message posted in the same second as another,
+  because it compared timestamps.
+- The web UI rebuilt the whole feed on every poll, reloading images and
+  cancelling highlights.
+
+### Changed
+- Dependencies move to their latest releases: jest 30, marked 18, and the
+  latest minor versions of every gem. `sinatra-contrib` is no longer used.
+
 ## [1.0.3] - 2026-09-20
 
 ### Fixed
